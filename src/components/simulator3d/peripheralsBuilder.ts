@@ -79,53 +79,5 @@ export function buildPeripherals3D(
     group.add(trackpadMesh);
   }
 
-  // 3. Brass Architectural Lamp (if selected in lighting)
-  if (lightingId === 'light-brass-architect') {
-    const lampGroup = new THREE.Group();
-    lampGroup.position.set(-0.52, deskSurfaceY, -0.15); // Left corner of desk
-
-    const brassMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.2, metalness: 0.85 });
-
-    // Weighted base
-    const baseGeo = new THREE.CylinderGeometry(0.06, 0.065, 0.015, 24);
-    const base = new THREE.Mesh(baseGeo, brassMat);
-    base.position.y = 0.008;
-    base.castShadow = true;
-    lampGroup.add(base);
-
-    // Lower angled arm
-    const arm1Geo = new THREE.CylinderGeometry(0.006, 0.006, 0.32, 12);
-    const arm1 = new THREE.Mesh(arm1Geo, brassMat);
-    arm1.position.set(0.04, 0.15, 0);
-    arm1.rotation.z = -0.3;
-    arm1.castShadow = true;
-    lampGroup.add(arm1);
-
-    // Upper articulated arm
-    const arm2 = new THREE.Mesh(arm1Geo, brassMat);
-    arm2.position.set(0.12, 0.38, 0.04);
-    arm2.rotation.z = 0.45;
-    arm2.castShadow = true;
-    lampGroup.add(arm2);
-
-    // Conical shade
-    const shadeGeo = new THREE.ConeGeometry(0.06, 0.1, 16);
-    const shade = new THREE.Mesh(shadeGeo, brassMat);
-    shade.position.set(0.22, 0.46, 0.06);
-    shade.rotation.z = Math.PI / 1.35;
-    shade.castShadow = true;
-    lampGroup.add(shade);
-
-    // Warm task spotlight
-    const spot = new THREE.SpotLight(0xfef08a, 4.5, 1.8, Math.PI / 3.5, 0.4, 1);
-    spot.position.set(0.22, 0.46, 0.06);
-    spot.target.position.set(0, deskSurfaceY, 0.05);
-    spot.castShadow = true;
-    lampGroup.add(spot);
-    lampGroup.add(spot.target);
-
-    group.add(lampGroup);
-  }
-
   return group;
 }

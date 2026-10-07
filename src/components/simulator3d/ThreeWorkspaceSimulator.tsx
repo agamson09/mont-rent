@@ -10,6 +10,7 @@ import { buildMonitor3D } from './monitorBuilder';
 import { buildPeripherals3D } from './peripheralsBuilder';
 import { buildPlant3D } from './plantBuilder';
 import { buildLifestyle3D } from './lifestyleBuilder';
+import { buildLighting3D } from './lightingBuilder';
 import { buildRoom3D } from './roomBuilder';
 import { PRODUCTS } from '@/data/products';
 import { PRESETS } from '@/data/presets';
@@ -378,6 +379,10 @@ export const ThreeWorkspaceSimulator: React.FC = () => {
     const peripheralsMesh = buildPeripherals3D(peripheralsId, deskSurfaceY, lightingId);
     dynamicMount.add(peripheralsMesh);
 
+    // Dedicated Lighting Gear (ScreenBar, Brass Lamp, or Sunset LED Backlight)
+    const lightingMesh = buildLighting3D(lightingId, deskSurfaceY, scene);
+    dynamicMount.add(lightingMesh);
+
     // Desktop & Lifestyle Items (Coffee machine on desk, Surfboard propped against wall, Bean bag)
     const lifestyleMesh = buildLifestyle3D(lifestyleIds, deskSurfaceY);
     dynamicMount.add(lifestyleMesh);
@@ -391,29 +396,38 @@ export const ThreeWorkspaceSimulator: React.FC = () => {
     // F. Atmosphere Lighting Adjustments
     const sunLight = scene.getObjectByName('SunLight') as THREE.DirectionalLight;
     const hemiLight = scene.getObjectByName('HemiLight') as THREE.HemisphereLight;
+    const fillLight = scene.getObjectByName('FillLight') as THREE.AmbientLight;
 
-    if (sunLight && hemiLight) {
+    if (sunLight && hemiLight && fillLight) {
       if (lightingMode === 'sunset') {
         sunLight.color.setHex(0xf97316);
         sunLight.intensity = 2.0;
         sunLight.position.set(3.5, 2.0, 1.2);
         hemiLight.color.setHex(0xfdba74);
         hemiLight.groundColor.setHex(0x7c2d12);
-        hemiLight.intensity = 0.65;
+        hemiLight.intensity = 0.7;
+        fillLight.intensity = 0.6;
+        fillLight.color.setHex(0xfed7aa);
       } else if (lightingMode === 'night') {
+        // Night atmosphere: soft ambient fill so interior lights shine gloriously
         sunLight.color.setHex(0x60a5fa);
-        sunLight.intensity = 0.45;
+        sunLight.intensity = 0.3;
         sunLight.position.set(-2.0, 3.5, -1.0);
         hemiLight.color.setHex(0x1e1b4b);
         hemiLight.groundColor.setHex(0x0f172a);
-        hemiLight.intensity = 0.35;
+        hemiLight.intensity = 0.45;
+        fillLight.intensity = 0.45;
+        fillLight.color.setHex(0x334155);
       } else {
+        // Bright Balinese Day Sunlight
         sunLight.color.setHex(0xfef08a);
-        sunLight.intensity = 2.5;
+        sunLight.intensity = 2.6;
         sunLight.position.set(2.8, 3.8, 1.8);
         hemiLight.color.setHex(0xfffbeb);
         hemiLight.groundColor.setHex(0x78350f);
-        hemiLight.intensity = 0.85;
+        hemiLight.intensity = 0.9;
+        fillLight.intensity = 0.65;
+        fillLight.color.setHex(0xffffff);
       }
     }
   }, [

@@ -219,42 +219,5 @@ export function buildMonitor3D(
     group.add(monitorAssembly);
   }
 
-  // --- SCREENBAR LIGHTBAR CLAMPED ATOP MONITOR ---
-  if (lightingId === 'light-screenbar') {
-    const lightbarGroup = new THREE.Group();
-    lightbarGroup.position.set(0, deskSurfaceY + 0.52, -0.21);
-
-    // Horizontal Bar
-    const barGeo = new THREE.CylinderGeometry(0.012, 0.012, 0.44, 16);
-    const barMat = new THREE.MeshStandardMaterial({ color: 0x09090b, metalness: 0.8, roughness: 0.3 });
-    const bar = new THREE.Mesh(barGeo, barMat);
-    bar.rotation.z = Math.PI / 2;
-    lightbarGroup.add(bar);
-
-    // Clamp bracket
-    const clampGeo = new THREE.BoxGeometry(0.04, 0.05, 0.04);
-    const clamp = new THREE.Mesh(clampGeo, barMat);
-    clamp.position.set(0, -0.02, -0.02);
-    lightbarGroup.add(clamp);
-
-    // Emissive glowing light slit
-    const slitGeo = new THREE.PlaneGeometry(0.4, 0.008);
-    const slitMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
-    const slit = new THREE.Mesh(slitGeo, slitMat);
-    slit.rotation.x = Math.PI / 2;
-    slit.position.y = -0.012;
-    lightbarGroup.add(slit);
-
-    // Actual 3D SpotLight pointing down onto desk
-    const spot = new THREE.SpotLight(0xfef08a, 4, 1.5, Math.PI / 4, 0.5, 1);
-    spot.position.set(0, -0.015, 0);
-    spot.target.position.set(0, deskSurfaceY, 0.05);
-    spot.castShadow = true;
-    lightbarGroup.add(spot);
-    lightbarGroup.add(spot.target);
-
-    group.add(lightbarGroup);
-  }
-
   return group;
 }
