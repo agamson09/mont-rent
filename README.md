@@ -1,36 +1,109 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🌴 DreamDesk — Interactive Workspace Designer in Bali
+> **A product-first, visual workspace configurator built for [monis.rent](https://monis.rent/) & Desent.**  
+> *Skip boring catalogs. Build your dream office setup visually, get hyped, and rent it for your Bali villa in under 60 seconds.*
 
-## Getting Started
+---
 
-First, run the development server:
+## 🚀 Live Demo & Repository
+* **Live Deployment**: Deployed on [Vercel](https://vercel.com)
+* **GitHub Repository**: [https://github.com/agam-r/DreamDesk](https://github.com/agam-r/DreamDesk)
+* **Collaborator**: `desent-bot` (Read access granted)
+
+---
+
+## 📖 Product Vision & The "Why"
+
+When a freelance software engineer or startup founder lands at Ngurah Rai Airport, checks into their villa in Canggu or Pererenan, and has a sprint starting on Monday:
+- They **do not** want to download a clunky PDF catalog.
+- They **do not** want to browse an uninspired spreadsheet with dimension tables.
+- They **want to feel the excitement** of creating their ideal workspace: an electric standing desk with warm Indonesian teak wood, an ergonomic aero-mesh chair built for tropical humidity, dual 4K monitors on gas-spring arms, a plant on the desk, an espresso bar, and a surfboard propped against the villa wall ready for dawn patrol.
+
+**DreamDesk** replaces the conventional e-commerce funnel with a **"Living Visual Canvas"** where every click instantly updates their setup in real-time.
+
+---
+
+## ✨ Key Features
+
+### 1. The Living Canvas (2.5D Layered Visual Studio)
+* **Real-Time Swapping**: Seamlessly change between 4 motorized and artisan desks, 4 ergonomic and active seating options, and 4 display setups (single 27" 4K up to 49" super-ultrawide cockpit).
+* **Direct Canvas Hotspots**: As illustrated in the original design sketch, click interactive pulsating hotspots directly on the canvas (`+ Add Monitor!`, `+ Select Desk`, `+ Place a Plant!`, `+ Add Coffee!`).
+* **Atmosphere Toggles**:
+  * **Villa Backdrops**: Switch between *Villa Pool & Deck*, *Ubud Rice Terrace*, and *Minimalist Loft*.
+  * **Lighting Modes**: *Day Mode (☀️)*, *Sunset Golden Hour (🌅)*, and *Night Focus Mode (🌙)* with reactive task lamp cones and monitor lightbars.
+
+### 2. Bali Nomad Lifestyle Add-ons (The Sketch Highlights)
+* ☕ **Coffee Station**: De'Longhi Dedica espresso machine + weekly delivery of fresh Bali Kintamani beans.
+* 🏄 **Island Gear**: Echo 6'2" retro fish surfboard propped against the wall.
+* 🛋️ **Relax Zone**: Sun-bleached linen oversized bean bag for casual code reviews.
+* 🛵 **Island Wheels**: Canggu nomad matte helmet & NMAX / Vespa magnetic key dock.
+
+### 3. 1-Click Curated Nomad Presets
+Instant high-conviction configurations for common roles:
+* **The 10x Nomad Dev**: Dual 4K displays + Teak standing desk + Aero-mesh chair + Espresso bar + Rice terrace backdrop.
+* **The Minimalist Creator**: 34" Curved ultrawide + Scandinavian white desk + Brass lamp + Linen bean bag.
+* **The Island Founder**: 49" Super-ultrawide command center + Executive walnut desk + Leather chair + Sunset glow + Surfboard.
+
+### 4. Transparent Nomad Pricing Engine
+* **Weekly vs. Monthly Billing**: Instant pricing toggle with progressive monthly discount badges (*Save 25% on monthly rentals*).
+* **Multi-Currency Support**: Switch between **USD ($)** and **IDR (Rp)** in one click.
+* **Duration Stepper**: Customize rental length from 1 week up to 6 months.
+
+### 5. High-Conversion "Ready to Rent" Checkout
+* **Itemized Gear Manifest**: Full breakdown of selected furniture, peripherals, and lifestyle additions.
+* **Bali Delivery Areas**: Preset logistics coverage for *Canggu (Batu Bolong & Echo Beach)*, *Pererenan*, *Seminyak*, *Ubud*, *Uluwatu*, and *Sanur*.
+* **WhatsApp Direct Ordering**: Generates a pre-formatted, detailed rental manifest ready to send to Monis.rent's concierge on WhatsApp (the primary communication channel in Bali).
+* **Confetti Celebration Feedback**: Visual delight upon reservation confirmation.
+
+---
+
+## 🛠️ Tech Stack & Decisions
+
+| Technology | Role | Why It Was Chosen |
+| :--- | :--- | :--- |
+| **Next.js 16 (App Router)** | Framework | Next-generation React 19 performance, Partial Prerendering (PPR), Turbopack, and seamless Vercel integration. |
+| **Tailwind CSS v4** | Styling | Dynamic utility tokens, sleek modern dark aesthetics, responsive layout without bloated CSS bundles. |
+| **Zustand** | State Management | Featherlight, reactive state decoupling the living canvas, catalog drawer, and pricing engine. |
+| **Lucide React** | Icons | Clean, modern iconography across categories, presets, and action buttons. |
+| **Canvas Confetti** | Micro-interaction | Celebratory feedback when finalizing rental reservations. |
+
+---
+
+## 🔮 What I Would Improve With More Time
+
+1. **3D WebGL / Spline Integration**:
+   - Upgrade the 2.5D layered vector canvas to an interactive 3D WebGL room viewer where users can orbit 360°, inspect wood grains up close, and adjust standing desk height with an interactive slider.
+2. **Augmented Reality (AR) Villa Placement**:
+   - Integrate Quick Look (USDZ) and WebXR so nomads can view their selected desk and chair placed directly inside their actual Bali villa room via their phone camera.
+3. **Automated Wise / Stripe Deposit Authorizations**:
+   - Connect direct card pre-authorizations for the refundable security deposit, providing instant automated delivery scheduling.
+4. **Co-Living & Villa Community Sharing**:
+   - Enable nomads to generate a public link (`?setup=10x-dev-xyz`) to split equipment rental costs with villa roommates or co-working peers.
+
+---
+
+## 🏃 Getting Started Locally
 
 ```bash
+# 1. Clone repository
+git clone https://github.com/agam-r/DreamDesk.git
+cd DreamDesk
+
+# 2. Install dependencies
+npm install
+
+# 3. Start development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# 4. Production build check
+npm run build
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🤝 Submitting to Desent
+* **Collaborator**: `desent-bot` has been granted Read access under repo settings.
+* Built with ❤️ for **Monis.rent** and **Desent**.
