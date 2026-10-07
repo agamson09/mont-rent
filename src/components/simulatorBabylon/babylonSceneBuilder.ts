@@ -220,13 +220,14 @@ export function buildBabylonRoom(
 
   const sceneryMat = new StandardMaterial('SceneryMat', scene);
   const texture = new Texture(imageMap[backdrop] || imageMap['villa-pool'], scene);
+  texture.level = lightingMode === 'night' ? 0.25 : lightingMode === 'sunset' ? 0.85 : 1.0;
   sceneryMat.emissiveTexture = texture;
   sceneryMat.diffuseTexture = texture;
   sceneryMat.emissiveColor =
     lightingMode === 'sunset'
-      ? new Color3(1.0, 0.82, 0.68)
+      ? new Color3(1.0, 0.75, 0.5)
       : lightingMode === 'night'
-      ? new Color3(0.52, 0.62, 0.76)
+      ? new Color3(0.28, 0.35, 0.5)
       : new Color3(1.0, 1.0, 1.0);
   sceneryMat.disableLighting = true;
   sceneryMat.backFaceCulling = false;

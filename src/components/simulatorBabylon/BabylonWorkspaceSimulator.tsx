@@ -252,13 +252,13 @@ export const BabylonWorkspaceSimulator: React.FC = () => {
     // ArcRotate Camera: positioned in +X, +Z quadrant, perfectly framing the whole setup
     const camera = new ArcRotateCamera(
       'MainCamera',
-      Math.PI / 2.6, // ~69° horizontal: slightly right of center
-      Math.PI / 2.7, // ~66° vertical: elevated overview
-      3.8,           // radius: frames hardwood floor, full desk, chair, monitors, and window
-      new Vector3(0, 0.74, -0.1),
+      Math.PI / 2.5,
+      Math.PI / 2.8,
+      4.3,
+      new Vector3(0, 0.74, 0),
       scene
     );
-    camera.setPosition(new Vector3(2.35, 1.62, 2.75));
+    camera.setPosition(new Vector3(2.65, 1.85, 3.15));
     camera.attachControl(canvas, true);
     camera.lowerRadiusLimit = 1.4;
     camera.upperRadiusLimit = 5.2;
