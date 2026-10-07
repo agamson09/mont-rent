@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Header } from '@/components/navbar/Header';
+import { BabylonWorkspaceSimulator } from '@/components/simulatorBabylon/BabylonWorkspaceSimulator';
 import { ThreeWorkspaceSimulator } from '@/components/simulator3d/ThreeWorkspaceSimulator';
 import { WorkspaceCanvas } from '@/components/canvas/WorkspaceCanvas';
 import { PresetSelector } from '@/components/presets/PresetSelector';
@@ -20,11 +21,12 @@ import {
   Sparkles,
   MapPin,
   Box,
-  Layers
+  Layers,
+  Sparkle
 } from 'lucide-react';
 
 export default function Home() {
-  const [viewMode, setViewMode] = React.useState<'3d' | '2d'>('3d');
+  const [viewMode, setViewMode] = React.useState<'babylon' | 'three' | '2d'>('babylon');
 
   return (
     <div className="min-h-screen flex flex-col bg-[#070A0F] text-slate-100">
@@ -50,23 +52,34 @@ export default function Home() {
             Pick your desk, choose an ergonomic chair, drop in 4K monitors, add a plant, or lean your surfboard against the wall. Watch your setup come to life in realistic 3D space.
           </p>
 
-          {/* View Mode Toggle (3D WebGL Simulator vs 2D Sketch Blueprint) */}
+          {/* View Mode Toggle: Babylon.js PBR (Realistic) vs Three.js vs 2D */}
           <div className="flex items-center justify-center gap-2 pt-2">
-            <div className="inline-flex items-center bg-slate-900/90 rounded-full p-1 border border-slate-800 shadow-xl">
+            <div className="inline-flex items-center bg-slate-900/90 rounded-full p-1 border border-slate-800 shadow-xl overflow-x-auto max-w-full">
               <button
-                onClick={() => setViewMode('3d')}
-                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-extrabold transition-all cursor-pointer ${
-                  viewMode === '3d'
-                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 shadow-md shadow-emerald-500/25'
+                onClick={() => setViewMode('babylon')}
+                className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-full text-xs font-extrabold transition-all cursor-pointer whitespace-nowrap ${
+                  viewMode === 'babylon'
+                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 shadow-md shadow-emerald-500/25 ring-1 ring-emerald-300'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-slate-950" />
+                <span>3D Babylon.js (Realistic PBR)</span>
+              </button>
+              <button
+                onClick={() => setViewMode('three')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                  viewMode === 'three'
+                    ? 'bg-slate-800 text-white shadow-xs'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
                 <Box className="w-3.5 h-3.5" />
-                <span>3D Simulator (Three.js)</span>
+                <span>3D Three.js</span>
               </button>
               <button
                 onClick={() => setViewMode('2d')}
-                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
                   viewMode === '2d'
                     ? 'bg-slate-800 text-white shadow-xs'
                     : 'text-slate-400 hover:text-white'
@@ -86,7 +99,9 @@ export default function Home() {
 
         {/* CENTERPIECE: 3D WORKSPACE SIMULATOR / 2D CANVAS */}
         <section className="relative">
-          {viewMode === '3d' ? <ThreeWorkspaceSimulator /> : <WorkspaceCanvas />}
+          {viewMode === 'babylon' && <BabylonWorkspaceSimulator />}
+          {viewMode === 'three' && <ThreeWorkspaceSimulator />}
+          {viewMode === '2d' && <WorkspaceCanvas />}
         </section>
 
         {/* CUSTOMIZATION STUDIO & CATALOG */}
