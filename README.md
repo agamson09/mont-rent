@@ -24,12 +24,19 @@ When a freelance software engineer or startup founder lands at Ngurah Rai Airpor
 
 ## ✨ Key Features
 
-### 1. The Living Canvas (2.5D Layered Visual Studio)
-* **Real-Time Swapping**: Seamlessly change between 4 motorized and artisan desks, 4 ergonomic and active seating options, and 4 display setups (single 27" 4K up to 49" super-ultrawide cockpit).
-* **Direct Canvas Hotspots**: As illustrated in the original design sketch, click interactive pulsating hotspots directly on the canvas (`+ Add Monitor!`, `+ Select Desk`, `+ Place a Plant!`, `+ Add Coffee!`).
+### 1. 3D Interactive Workspace Simulator (Three.js WebGL)
+* **Real 3D Spatial Geometry & Proportions**: Desks, chairs, displays, and accessories rendered in physical 3D dimensions with PBR materials (Indonesian Teak wood, dark walnut, brushed steel, mesh elastomer, nappa leather).
+* **360° Orbit & Camera Controls**: Free rotate around the workstation, zoom in on keyboard and display details, or use 1-click camera presets:
+  * 📐 **45° Studio Isometric**
+  * 👁️ **Front Eye-Level Work View**
+  * 🖥️ **Desk Top-Down Focus**
+  * 🏄 **Full Room Overview**
+* **Motorized Standing Desk Elevation Simulator**: Toggle between *Sitting (74 cm)* and *Standing (106 cm)* with real-time smooth motorized vertical lift animation!
+* **Realistic Dynamic Lighting & Soft Shadows**: Powered by `PCFSoftShadowMap`. Directional tropical sunlight casts authentic soft shadows across the villa hardwood floor. ScreenBar and task lamps project real 3D spotlights onto the desk surface.
 * **Atmosphere Toggles**:
   * **Villa Backdrops**: Switch between *Villa Pool & Deck*, *Ubud Rice Terrace*, and *Minimalist Loft*.
-  * **Lighting Modes**: *Day Mode (☀️)*, *Sunset Golden Hour (🌅)*, and *Night Focus Mode (🌙)* with reactive task lamp cones and monitor lightbars.
+  * **Lighting Modes**: *Day Mode (☀️)*, *Sunset Golden Hour (🌅)*, and *Night Focus Mode (🌙)*.
+* **2D Blueprint Fallback Mode**: Toggle anytime between 3D WebGL Simulator and 2D Sketch Blueprint.
 
 ### 2. Bali Nomad Lifestyle Add-ons (The Sketch Highlights)
 * ☕ **Coffee Station**: De'Longhi Dedica espresso machine + weekly delivery of fresh Bali Kintamani beans.

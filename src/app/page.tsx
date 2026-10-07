@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Header } from '@/components/navbar/Header';
+import { ThreeWorkspaceSimulator } from '@/components/simulator3d/ThreeWorkspaceSimulator';
 import { WorkspaceCanvas } from '@/components/canvas/WorkspaceCanvas';
 import { PresetSelector } from '@/components/presets/PresetSelector';
 import { CategoryTabs } from '@/components/catalog/CategoryTabs';
@@ -17,10 +18,14 @@ import {
   Zap, 
   CheckCircle2, 
   Sparkles,
-  MapPin
+  MapPin,
+  Box,
+  Layers
 } from 'lucide-react';
 
 export default function Home() {
+  const [viewMode, setViewMode] = React.useState<'3d' | '2d'>('3d');
+
   return (
     <div className="min-h-screen flex flex-col bg-[#070A0F] text-slate-100">
       {/* 1. TOP HEADER */}
@@ -42,8 +47,36 @@ export default function Home() {
             — Create Your Perfect Setup &amp; Rent It in Bali —
           </p>
           <p className="text-xs sm:text-sm text-slate-400 max-w-xl mx-auto leading-relaxed">
-            Pick your desk, choose an ergonomic chair, drop in 4K monitors, add a plant, or lean your surfboard against the wall. Watch your setup come to life in real-time.
+            Pick your desk, choose an ergonomic chair, drop in 4K monitors, add a plant, or lean your surfboard against the wall. Watch your setup come to life in realistic 3D space.
           </p>
+
+          {/* View Mode Toggle (3D WebGL Simulator vs 2D Sketch Blueprint) */}
+          <div className="flex items-center justify-center gap-2 pt-2">
+            <div className="inline-flex items-center bg-slate-900/90 rounded-full p-1 border border-slate-800 shadow-xl">
+              <button
+                onClick={() => setViewMode('3d')}
+                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-extrabold transition-all cursor-pointer ${
+                  viewMode === '3d'
+                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 shadow-md shadow-emerald-500/25'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Box className="w-3.5 h-3.5" />
+                <span>3D Simulator (Three.js)</span>
+              </button>
+              <button
+                onClick={() => setViewMode('2d')}
+                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                  viewMode === '2d'
+                    ? 'bg-slate-800 text-white shadow-xs'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Layers className="w-3.5 h-3.5" />
+                <span>2D Blueprint</span>
+              </button>
+            </div>
+          </div>
         </section>
 
         {/* 1-CLICK CURATED NOMAD PRESETS */}
@@ -51,9 +84,9 @@ export default function Home() {
           <PresetSelector />
         </section>
 
-        {/* CENTERPIECE: THE LIVING WORKSPACE CANVAS */}
+        {/* CENTERPIECE: 3D WORKSPACE SIMULATOR / 2D CANVAS */}
         <section className="relative">
-          <WorkspaceCanvas />
+          {viewMode === '3d' ? <ThreeWorkspaceSimulator /> : <WorkspaceCanvas />}
         </section>
 
         {/* CUSTOMIZATION STUDIO & CATALOG */}
