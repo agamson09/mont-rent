@@ -4,6 +4,7 @@ export function buildChair3D(chairId: string): THREE.Group {
   const chairGroup = new THREE.Group();
   chairGroup.name = 'ChairRoot';
   chairGroup.position.set(0, 0, 0.52); // Positioned in front of the desk
+  chairGroup.rotation.y = Math.PI - 0.15; // Faces the desk and monitors with natural inviting angle
   chairGroup.userData = { type: 'chair', id: chairId };
 
   // Shared Materials
