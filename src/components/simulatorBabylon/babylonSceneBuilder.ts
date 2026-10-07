@@ -12,7 +12,9 @@ import {
   PointLight,
   TransformNode,
   Mesh,
+  SceneLoader,
 } from '@babylonjs/core';
+import '@babylonjs/loaders/glTF';
 
 // Helper to create VS Code dynamic texture for monitor screen
 export function createBabylonScreenTexture(scene: Scene): DynamicTexture {
@@ -114,7 +116,7 @@ export function buildBabylonRoom(
   const wallColors = {
     day: new Color3(0.96, 0.95, 0.92),
     sunset: new Color3(0.95, 0.82, 0.72),
-    night: new Color3(0.12, 0.15, 0.22),
+    night: new Color3(0.18, 0.22, 0.32),
   };
 
   const wallMat = new PBRMaterial('WallPBR', scene);
@@ -224,7 +226,7 @@ export function buildBabylonRoom(
     lightingMode === 'sunset'
       ? new Color3(1.0, 0.82, 0.68)
       : lightingMode === 'night'
-      ? new Color3(0.35, 0.42, 0.52)
+      ? new Color3(0.52, 0.62, 0.76)
       : new Color3(1.0, 1.0, 1.0);
   sceneryMat.disableLighting = true;
   sceneryMat.backFaceCulling = false;
@@ -366,15 +368,57 @@ export function buildBabylonDesk(
 }
 
 // 3. BUILD CHAIR (Facing the desk and monitors correctly!)
-export function buildBabylonChair(
+export async function buildBabylonChair(
   scene: Scene,
   chairId: string,
   shadowGen: ShadowGenerator
-): TransformNode {
+): Promise<TransformNode> {
   const chairNode = new TransformNode('ChairRoot', scene);
   chairNode.position.set(0.12, 0, 0.72);
   chairNode.rotation.y = Math.PI - 0.22; // Natural inviting 3/4 angle facing the desk
   chairNode.metadata = { type: 'chairs', id: chairId };
+
+  // Load High-End Photorealistic GLB Model for Nordic Chair
+  if (chairId === 'chair-scandi-swivel') {
+    try {
+      const result = await SceneLoader.ImportMeshAsync('', '/models/', 'sheen_chair.glb', scene);
+      const rootMesh = result.meshes[0];
+      rootMesh.parent = chairNode;
+      rootMesh.position.set(0, 0, 0);
+      rootMesh.rotationQuaternion = null;
+      rootMesh.rotation.y = Math.PI;
+      rootMesh.scaling.setAll(0.95);
+      result.meshes.forEach((m) => {
+        m.receiveShadows = true;
+        shadowGen.addShadowCaster(m);
+        m.metadata = { type: 'chairs', id: chairId };
+      });
+      return chairNode;
+    } catch (err) {
+      console.warn('Failed to load sheen_chair.glb, falling back to procedural:', err);
+    }
+  }
+
+  // Load High-End Photorealistic GLB Model for Executive Chair
+  if (chairId === 'chair-executive-leather') {
+    try {
+      const result = await SceneLoader.ImportMeshAsync('', '/models/', 'executive_chair.glb', scene);
+      const rootMesh = result.meshes[0];
+      rootMesh.parent = chairNode;
+      rootMesh.position.set(0, 0, 0);
+      rootMesh.rotationQuaternion = null;
+      rootMesh.rotation.y = Math.PI;
+      rootMesh.scaling.setAll(0.95);
+      result.meshes.forEach((m) => {
+        m.receiveShadows = true;
+        shadowGen.addShadowCaster(m);
+        m.metadata = { type: 'chairs', id: chairId };
+      });
+      return chairNode;
+    } catch (err) {
+      console.warn('Failed to load executive_chair.glb, falling back to procedural:', err);
+    }
+  }
 
   const blackMat = new PBRMaterial('ChairPlastic', scene);
   blackMat.albedoColor = new Color3(0.12, 0.15, 0.2);
@@ -655,12 +699,12 @@ export function buildBabylonMonitors(
 }
 
 // 5. BUILD DEDICATED LIGHTING (ScreenBar, Brass Lamp, Sunset RGB Strip with Neon Bloom)
-export function buildBabylonLighting(
+export async function buildBabylonLighting(
   scene: Scene,
   lightingId: string | null,
   deskSurfaceY: number = 0.775,
   shadowGen: ShadowGenerator
-): TransformNode {
+): Promise<TransformNode> {
   const lightNode = new TransformNode('LightingRoot', scene);
   lightNode.metadata = { type: 'lighting', id: lightingId };
 
@@ -701,57 +745,91 @@ export function buildBabylonLighting(
     shadowGen.addShadowCaster(bar);
     spot.parent = lightNode;
   } else if (lightingId === 'light-brass-architect') {
-    // Brass Task Lamp
-    const lampPos = new Vector3(-0.54, deskSurfaceY, -0.16);
+    // Try loading Photorealistic PBR Desk Lamp GLB
+    let loadedLamp = false;
+    try {
+      const lampRes = await SceneLoader.ImportMeshAsync('', '/models/', 'desk_lamp.glb', scene);
+      const rootMesh = lampRes.meshes[0];
+      rootMesh.parent = lightNode;
+      rootMesh.position.set(-0.52, deskSurfaceY, -0.15);
+      rootMesh.rotationQuaternion = null;
+      rootMesh.rotation.y = Math.PI / 3.5;
+      rootMesh.scaling.setAll(0.24);
+      lampRes.meshes.forEach((m) => {
+        m.receiveShadows = true;
+        shadowGen.addShadowCaster(m);
+        m.metadata = { type: 'lighting', id: lightingId };
+      });
 
-    const brassMat = new PBRMaterial('BrassMat', scene);
-    brassMat.albedoColor = new Color3(0.85, 0.55, 0.12);
-    brassMat.metallic = 0.92;
-    brassMat.roughness = 0.15;
+      const spot = new SpotLight(
+        'DeskLampSpot',
+        new Vector3(-0.46, deskSurfaceY + 0.42, -0.08),
+        new Vector3(0.5, -1, 0.35),
+        Math.PI / 2.6,
+        2.0,
+        scene
+      );
+      spot.diffuse = new Color3(1, 0.88, 0.55);
+      spot.intensity = 26;
+      spot.parent = lightNode;
+      loadedLamp = true;
+    } catch (e) {
+      console.warn('Failed to load desk_lamp.glb, using procedural fallback:', e);
+    }
 
-    const base = MeshBuilder.CreateCylinder('BrassBase', { diameter: 0.13, height: 0.018 }, scene);
-    base.position.set(lampPos.x, lampPos.y + 0.009, lampPos.z);
-    base.material = brassMat;
-    base.parent = lightNode;
+    if (!loadedLamp) {
+      // Brass Task Lamp Procedural
+      const lampPos = new Vector3(-0.54, deskSurfaceY, -0.16);
 
-    const arm1 = MeshBuilder.CreateCylinder('BrassArm1', { diameter: 0.012, height: 0.32 }, scene);
-    arm1.position.set(lampPos.x + 0.04, lampPos.y + 0.16, lampPos.z);
-    arm1.rotation.z = -0.32;
-    arm1.material = brassMat;
-    arm1.parent = lightNode;
+      const brassMat = new PBRMaterial('BrassMat', scene);
+      brassMat.albedoColor = new Color3(0.85, 0.55, 0.12);
+      brassMat.metallic = 0.92;
+      brassMat.roughness = 0.15;
 
-    const arm2 = MeshBuilder.CreateCylinder('BrassArm2', { diameter: 0.012, height: 0.32 }, scene);
-    arm2.position.set(lampPos.x + 0.16, lampPos.y + 0.38, lampPos.z + 0.04);
-    arm2.rotation.z = 0.48;
-    arm2.material = brassMat;
-    arm2.parent = lightNode;
+      const base = MeshBuilder.CreateCylinder('BrassBase', { diameter: 0.13, height: 0.018 }, scene);
+      base.position.set(lampPos.x, lampPos.y + 0.009, lampPos.z);
+      base.material = brassMat;
+      base.parent = lightNode;
 
-    const shade = MeshBuilder.CreateCylinder('BrassShade', { diameterTop: 0.02, diameterBottom: 0.12, height: 0.11 }, scene);
-    shade.position.set(lampPos.x + 0.26, lampPos.y + 0.46, lampPos.z + 0.06);
-    shade.rotation.z = Math.PI / 1.38;
-    shade.material = brassMat;
-    shade.parent = lightNode;
+      const arm1 = MeshBuilder.CreateCylinder('BrassArm1', { diameter: 0.012, height: 0.32 }, scene);
+      arm1.position.set(lampPos.x + 0.04, lampPos.y + 0.16, lampPos.z);
+      arm1.rotation.z = -0.32;
+      arm1.material = brassMat;
+      arm1.parent = lightNode;
 
-    // Glowing warm bulb
-    const bulb = MeshBuilder.CreateSphere('BrassBulb', { diameter: 0.04 }, scene);
-    bulb.position.set(lampPos.x + 0.24, lampPos.y + 0.44, lampPos.z + 0.06);
-    const bulbMat = new StandardMaterial('BulbMat', scene);
-    bulbMat.emissiveColor = new Color3(1, 0.92, 0.6);
-    bulbMat.disableLighting = true;
-    bulb.material = bulbMat;
-    bulb.parent = lightNode;
+      const arm2 = MeshBuilder.CreateCylinder('BrassArm2', { diameter: 0.012, height: 0.32 }, scene);
+      arm2.position.set(lampPos.x + 0.16, lampPos.y + 0.38, lampPos.z + 0.04);
+      arm2.rotation.z = 0.48;
+      arm2.material = brassMat;
+      arm2.parent = lightNode;
 
-    const spot = new SpotLight(
-      'BrassSpot',
-      new Vector3(lampPos.x + 0.24, lampPos.y + 0.44, lampPos.z + 0.06),
-      new Vector3(0.5, -1, 0.4),
-      Math.PI / 2.8,
-      1.8,
-      scene
-    );
-    spot.diffuse = new Color3(1, 0.88, 0.5);
-    spot.intensity = 22;
-    spot.parent = lightNode;
+      const shade = MeshBuilder.CreateCylinder('BrassShade', { diameterTop: 0.02, diameterBottom: 0.12, height: 0.11 }, scene);
+      shade.position.set(lampPos.x + 0.26, lampPos.y + 0.46, lampPos.z + 0.06);
+      shade.rotation.z = Math.PI / 1.38;
+      shade.material = brassMat;
+      shade.parent = lightNode;
+
+      // Glowing warm bulb
+      const bulb = MeshBuilder.CreateSphere('BrassBulb', { diameter: 0.04 }, scene);
+      bulb.position.set(lampPos.x + 0.24, lampPos.y + 0.44, lampPos.z + 0.06);
+      const bulbMat = new StandardMaterial('BulbMat', scene);
+      bulbMat.emissiveColor = new Color3(1, 0.92, 0.6);
+      bulbMat.disableLighting = true;
+      bulb.material = bulbMat;
+      bulb.parent = lightNode;
+
+      const spot = new SpotLight(
+        'BrassSpot',
+        new Vector3(lampPos.x + 0.24, lampPos.y + 0.44, lampPos.z + 0.06),
+        new Vector3(0.5, -1, 0.4),
+        Math.PI / 2.8,
+        1.8,
+        scene
+      );
+      spot.diffuse = new Color3(1, 0.88, 0.5);
+      spot.intensity = 22;
+      spot.parent = lightNode;
+    }
   } else if (lightingId === 'light-sunset-rgb') {
     // Bali Sunset Ambient LED Strip with Real Bloom!
     const ledStrip = MeshBuilder.CreateBox('SunsetLEDStrip', { width: 1.36, height: 0.015, depth: 0.015 }, scene);
@@ -786,14 +864,14 @@ export function buildBabylonLighting(
 }
 
 // 6. BUILD PERIPHERALS & LIFESTYLE & PLANTS
-export function buildBabylonAccessories(
+export async function buildBabylonAccessories(
   scene: Scene,
   peripheralsId: string | null,
   plantId: string | null,
   lifestyleIds: string[],
   deskSurfaceY: number = 0.775,
   shadowGen: ShadowGenerator
-): { deskAccNode: TransformNode; floorAccNode: TransformNode } {
+): Promise<{ deskAccNode: TransformNode; floorAccNode: TransformNode }> {
   // Desk Surface Accessories (elevate with motorized desk)
   const deskAccNode = new TransformNode('DeskAccessoriesRoot', scene);
   deskAccNode.position.y = deskSurfaceY;
@@ -801,6 +879,23 @@ export function buildBabylonAccessories(
   // Floor Accessories (stay on floor permanently)
   const floorAccNode = new TransformNode('FloorAccessoriesRoot', scene);
   floorAccNode.position.y = 0;
+
+  // Real GLB Nomad Vacuum Insulated Water Bottle on Desk
+  try {
+    const bottleRes = await SceneLoader.ImportMeshAsync('', '/models/', 'water_bottle.glb', scene);
+    const bottleRoot = bottleRes.meshes[0];
+    bottleRoot.parent = deskAccNode;
+    bottleRoot.position.set(-0.48, 0.13, 0.12);
+    bottleRoot.rotationQuaternion = null;
+    bottleRoot.scaling.setAll(0.85);
+    bottleRes.meshes.forEach((m) => {
+      m.receiveShadows = true;
+      shadowGen.addShadowCaster(m);
+      m.metadata = { type: 'peripherals' };
+    });
+  } catch (e) {
+    // optional prop
+  }
 
   // A. Desk Mat & Peripherals
   const mat = MeshBuilder.CreateBox('DeskMat', { width: 0.75, height: 0.004, depth: 0.34 }, scene);
@@ -832,10 +927,10 @@ export function buildBabylonAccessories(
   shadowGen.addShadowCaster(mouse);
   mouse.parent = deskAccNode;
 
-  // B. Coffee Machine & Cup (On Desk)
+  // B. Coffee Machine & Cup (On Desk Back-Right Corner)
   if (lifestyleIds.includes('lifestyle-coffee-station')) {
     const coffeeBody = MeshBuilder.CreateBox('EspressoMachine', { width: 0.14, height: 0.22, depth: 0.22 }, scene);
-    coffeeBody.position.set(0.55, 0.11, 0.05);
+    coffeeBody.position.set(0.56, 0.11, -0.16);
     const redMat = new PBRMaterial('CoffeeRed', scene);
     redMat.albedoColor = new Color3(0.75, 0.07, 0.24);
     redMat.roughness = 0.25;
@@ -846,7 +941,7 @@ export function buildBabylonAccessories(
     coffeeBody.parent = deskAccNode;
 
     const cup = MeshBuilder.CreateCylinder('CoffeeCup', { diameter: 0.04, height: 0.035 }, scene);
-    cup.position.set(0.55, 0.038, 0.17);
+    cup.position.set(0.56, 0.038, -0.04);
     const cupMat = new PBRMaterial('CupMat', scene);
     cupMat.albedoColor = new Color3(1, 1, 1);
     cup.material = cupMat;
@@ -854,7 +949,33 @@ export function buildBabylonAccessories(
     cup.parent = deskAccNode;
   }
 
-  // C. Surfboard propped against right wall (On Floor)
+  // C. Scooter Gear & Vintage Helmet (On Desk Front-Right Corner - No Collision!)
+  if (lifestyleIds.includes('lifestyle-scooter-gear')) {
+    const helmet = MeshBuilder.CreateSphere('ScooterHelmet', { diameter: 0.16, segments: 16 }, scene);
+    helmet.position.set(0.56, 0.07, 0.20);
+    const helmetMat = new PBRMaterial('HelmetMat', scene);
+    helmetMat.albedoColor = new Color3(0.06, 0.08, 0.12);
+    helmetMat.roughness = 0.35;
+    helmetMat.metallic = 0.3;
+    helmet.material = helmetMat;
+    helmet.metadata = { type: 'lifestyle', id: 'lifestyle-scooter-gear' };
+    shadowGen.addShadowCaster(helmet);
+    helmet.parent = deskAccNode;
+
+    // Amber / gold retro visor
+    const visor = MeshBuilder.CreateTorus('HelmetVisor', { diameter: 0.15, thickness: 0.012, tessellation: 24 }, scene);
+    visor.rotation.x = Math.PI / 2.3;
+    visor.position.set(0.56, 0.045, 0.22);
+    const visorMat = new PBRMaterial('VisorMat', scene);
+    visorMat.albedoColor = new Color3(0.95, 0.62, 0.08);
+    visorMat.roughness = 0.15;
+    visorMat.metallic = 0.8;
+    visor.material = visorMat;
+    visor.metadata = { type: 'lifestyle', id: 'lifestyle-scooter-gear' };
+    visor.parent = deskAccNode;
+  }
+
+  // D. Surfboard propped against right wall (On Floor)
   if (lifestyleIds.includes('lifestyle-surfboard')) {
     const board = MeshBuilder.CreateBox('Surfboard', { width: 0.38, height: 1.65, depth: 0.04 }, scene);
     board.position.set(1.4, 0.82, -0.35);
@@ -870,7 +991,7 @@ export function buildBabylonAccessories(
     board.parent = floorAccNode;
   }
 
-  // D. Linen Bean Bag (On Floor)
+  // E. Linen Bean Bag (On Floor)
   if (lifestyleIds.includes('lifestyle-beanbag')) {
     const beanbag = MeshBuilder.CreateSphere('Beanbag', { diameter: 0.76, segments: 20 }, scene);
     beanbag.scaling.set(1.15, 0.55, 1.15);
@@ -885,30 +1006,50 @@ export function buildBabylonAccessories(
     beanbag.parent = floorAccNode;
   }
 
-  // E. Plants: Monstera in Terracotta Pot (On Floor)
+  // F. Botanical Greenery: Photorealistic PBR Potted Plant (On Floor)
   if (plantId === 'plant-monstera') {
-    const pot = MeshBuilder.CreateCylinder('TerracottaPot', { diameterTop: 0.36, diameterBottom: 0.26, height: 0.32 }, scene);
-    pot.position.set(-1.15, 0.16, 0.3);
-    const potMat = new PBRMaterial('PotMat', scene);
-    potMat.albedoColor = new Color3(0.7, 0.33, 0.04);
-    potMat.roughness = 0.8;
-    pot.material = potMat;
-    pot.metadata = { type: 'plants' };
-    shadowGen.addShadowCaster(pot);
-    pot.parent = floorAccNode;
+    let loadedPlant = false;
+    try {
+      const plantRes = await SceneLoader.ImportMeshAsync('', '/models/', 'plant_potted.glb', scene);
+      const plantRoot = plantRes.meshes[0];
+      plantRoot.parent = floorAccNode;
+      plantRoot.position.set(-1.18, 0, 0.35);
+      plantRoot.rotationQuaternion = null;
+      plantRoot.scaling.setAll(1.05);
+      plantRes.meshes.forEach((m) => {
+        m.receiveShadows = true;
+        shadowGen.addShadowCaster(m);
+        m.metadata = { type: 'plants', id: 'plant-monstera' };
+      });
+      loadedPlant = true;
+    } catch (e) {
+      console.warn('Failed to load plant_potted.glb, using procedural fallback:', e);
+    }
 
-    const leafMat = new PBRMaterial('LeafMat', scene);
-    leafMat.albedoColor = new Color3(0.02, 0.59, 0.41);
-    leafMat.roughness = 0.35;
+    if (!loadedPlant) {
+      const pot = MeshBuilder.CreateCylinder('TerracottaPot', { diameterTop: 0.36, diameterBottom: 0.26, height: 0.32 }, scene);
+      pot.position.set(-1.15, 0.16, 0.3);
+      const potMat = new PBRMaterial('PotMat', scene);
+      potMat.albedoColor = new Color3(0.7, 0.33, 0.04);
+      potMat.roughness = 0.8;
+      pot.material = potMat;
+      pot.metadata = { type: 'plants' };
+      shadowGen.addShadowCaster(pot);
+      pot.parent = floorAccNode;
 
-    for (let i = 0; i < 5; i++) {
-      const leaf = MeshBuilder.CreateDisc(`Leaf${i}`, { radius: 0.28, tessellation: 16 }, scene);
-      leaf.position.set(-1.15 + Math.sin(i) * 0.15, 0.45 + i * 0.08, 0.3 + Math.cos(i) * 0.15);
-      leaf.rotation.x = Math.PI / 3.5;
-      leaf.rotation.y = (i * Math.PI) / 2.5;
-      leaf.material = leafMat;
-      leaf.metadata = { type: 'plants' };
-      leaf.parent = floorAccNode;
+      const leafMat = new PBRMaterial('LeafMat', scene);
+      leafMat.albedoColor = new Color3(0.02, 0.59, 0.41);
+      leafMat.roughness = 0.35;
+
+      for (let i = 0; i < 5; i++) {
+        const leaf = MeshBuilder.CreateDisc(`Leaf${i}`, { radius: 0.28, tessellation: 16 }, scene);
+        leaf.position.set(-1.15 + Math.sin(i) * 0.15, 0.45 + i * 0.08, 0.3 + Math.cos(i) * 0.15);
+        leaf.rotation.x = Math.PI / 3.5;
+        leaf.rotation.y = (i * Math.PI) / 2.5;
+        leaf.material = leafMat;
+        leaf.metadata = { type: 'plants' };
+        leaf.parent = floorAccNode;
+      }
     }
   }
 

@@ -11,7 +11,7 @@ export function buildLifestyle3D(
   // --- 1. COFFEE STATION (DE'LONGHI ESPRESSO MACHINE ON DESK RIGHT) ---
   if (lifestyleIds.includes('lifestyle-coffee-station')) {
     const coffeeGroup = new THREE.Group();
-    coffeeGroup.position.set(0.55, deskSurfaceY, 0.05); // Right side of desk surface
+    coffeeGroup.position.set(0.56, deskSurfaceY, -0.16); // Back right corner of desk surface
 
     const redMat = new THREE.MeshStandardMaterial({ color: 0xbe123c, roughness: 0.3, metalness: 0.6 });
     const chromeMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.15, metalness: 0.95 });

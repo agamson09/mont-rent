@@ -93,6 +93,12 @@ export const BabylonWorkspaceSimulator: React.FC = () => {
   const cameraRef = useRef<ArcRotateCamera | null>(null);
   const shadowGenRef = useRef<ShadowGenerator | null>(null);
   const glowLayerRef = useRef<GlowLayer | null>(null);
+  // Light & Shadow refs
+  const hemiLightRef = useRef<HemisphericLight | null>(null);
+  const sunLightRef = useRef<DirectionalLight | null>(null);
+  const chairVersionRef = useRef<number>(0);
+  const lightVersionRef = useRef<number>(0);
+  const accVersionRef = useRef<number>(0);
 
   // Mesh Hierarchy refs
   const roomNodeRef = useRef<TransformNode | null>(null);
@@ -270,12 +276,14 @@ export const BabylonWorkspaceSimulator: React.FC = () => {
     hemiLight.intensity = 0.75;
     hemiLight.groundColor = new Color3(0.18, 0.14, 0.1);
     hemiLight.diffuse = new Color3(1.0, 0.98, 0.92);
+    hemiLightRef.current = hemiLight;
 
     // Directional Sunlight pouring in from the window
     const sunLight = new DirectionalLight('SunLight', new Vector3(0.6, -1.8, 1.2), scene);
     sunLight.position = new Vector3(-1.2, 3.6, -1.8);
     sunLight.intensity = 2.2;
     sunLight.diffuse = new Color3(1.0, 0.95, 0.86);
+    sunLightRef.current = sunLight;
 
     // High Precision Soft Shadow Generator
     const shadowGen = new ShadowGenerator(2048, sunLight);
@@ -292,16 +300,7 @@ export const BabylonWorkspaceSimulator: React.FC = () => {
     glowLayer.intensity = 0.85;
     glowLayerRef.current = glowLayer;
 
-    // BUILD INITIAL WORKSPACE SCENE DIRECTLY ON MOUNT
-    roomNodeRef.current = buildBabylonRoom(scene, backdrop, lightingMode);
-    deskResultRef.current = buildBabylonDesk(scene, deskId, 0.74, shadowGen);
-    chairNodeRef.current = buildBabylonChair(scene, chairId, shadowGen);
-    monNodeRef.current = buildBabylonMonitors(scene, monitorId, 0.775, shadowGen);
-    lightingNodeRef.current = buildBabylonLighting(scene, lightingId, 0.775, shadowGen);
-    
-    const accResult = buildBabylonAccessories(scene, peripheralsId, plantId, lifestyleIds, 0.775, shadowGen);
-    deskAccNodeRef.current = accResult.deskAccNode;
-    floorAccNodeRef.current = accResult.floorAccNode;
+    // Note: Items (room, desk, chair, monitors, lighting, accessories) are built by their respective reactive useEffect hooks below without duplication!
 
     // --- RAYCASTING FOR 3D OBJECT CLICK SELECTION ---
     scene.onPointerDown = (evt, pickResult) => {
@@ -398,16 +397,50 @@ export const BabylonWorkspaceSimulator: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 2. Rebuild Room & Backdrop when backdrop or lightingMode changes
+  // 2. Rebuild Room & Backdrop and update Atmosphere Lighting when backdrop or lightingMode changes
   useEffect(() => {
     const scene = sceneRef.current;
     if (!scene) return;
 
     if (roomNodeRef.current) {
-      roomNodeRef.current.dispose();
+      roomNodeRef.current.dispose(false, true);
+      roomNodeRef.current = null;
     }
 
     roomNodeRef.current = buildBabylonRoom(scene, backdrop, lightingMode);
+
+    // Update Sun, Ambient, and Sky lighting dynamically according to time of day
+    const sunLight = sunLightRef.current;
+    const hemiLight = hemiLightRef.current;
+    if (sunLight && hemiLight) {
+      if (lightingMode === 'sunset') {
+        sunLight.diffuse = new Color3(1.0, 0.48, 0.18);
+        sunLight.intensity = 1.8;
+        sunLight.position = new Vector3(2.5, 2.0, -1.0);
+        hemiLight.diffuse = new Color3(1.0, 0.72, 0.45);
+        hemiLight.groundColor = new Color3(0.48, 0.18, 0.08);
+        hemiLight.intensity = 0.65;
+        scene.clearColor = new Color4(0.12, 0.05, 0.08, 1.0);
+      } else if (lightingMode === 'night') {
+        // Soft Bali moonlight through the window
+        sunLight.diffuse = new Color3(0.38, 0.55, 0.85);
+        sunLight.intensity = 0.35;
+        sunLight.position = new Vector3(-1.5, 3.0, -1.2);
+        hemiLight.diffuse = new Color3(0.18, 0.24, 0.42);
+        hemiLight.groundColor = new Color3(0.05, 0.07, 0.12);
+        hemiLight.intensity = 0.38;
+        scene.clearColor = new Color4(0.02, 0.03, 0.06, 1.0);
+      } else {
+        // Crisp tropical sunshine
+        sunLight.diffuse = new Color3(1.0, 0.95, 0.86);
+        sunLight.intensity = 2.2;
+        sunLight.position = new Vector3(-1.2, 3.6, -1.8);
+        hemiLight.diffuse = new Color3(1.0, 0.98, 0.92);
+        hemiLight.groundColor = new Color3(0.18, 0.14, 0.1);
+        hemiLight.intensity = 0.75;
+        scene.clearColor = new Color4(0.04, 0.06, 0.09, 1.0);
+      }
+    }
   }, [backdrop, lightingMode]);
 
   // 3. Rebuild Desk
@@ -417,7 +450,8 @@ export const BabylonWorkspaceSimulator: React.FC = () => {
     if (!scene || !shadowGen) return;
 
     if (deskResultRef.current?.deskNode) {
-      deskResultRef.current.deskNode.dispose();
+      deskResultRef.current.deskNode.dispose(false, true);
+      deskResultRef.current = null;
     }
 
     const curY = currentDeskHeightRef.current;
@@ -425,17 +459,29 @@ export const BabylonWorkspaceSimulator: React.FC = () => {
     deskResultRef.current = deskRes;
   }, [deskId]);
 
-  // 4. Rebuild Chair
+  // 4. Rebuild Chair (Version-tracked to strictly prevent duplicate or overlapping chairs!)
   useEffect(() => {
     const scene = sceneRef.current;
     const shadowGen = shadowGenRef.current;
     if (!scene || !shadowGen) return;
 
+    const currentVersion = ++chairVersionRef.current;
     if (chairNodeRef.current) {
-      chairNodeRef.current.dispose();
+      chairNodeRef.current.dispose(false, true);
+      chairNodeRef.current = null;
     }
 
-    chairNodeRef.current = buildBabylonChair(scene, chairId, shadowGen);
+    buildBabylonChair(scene, chairId, shadowGen).then((node) => {
+      if (chairVersionRef.current === currentVersion) {
+        chairNodeRef.current = node;
+      } else {
+        node.dispose(false, true);
+      }
+    });
+
+    return () => {
+      // Discard older loads
+    };
   }, [chairId]);
 
   // 5. Rebuild Monitors
@@ -445,7 +491,8 @@ export const BabylonWorkspaceSimulator: React.FC = () => {
     if (!scene || !shadowGen) return;
 
     if (monNodeRef.current) {
-      monNodeRef.current.dispose();
+      monNodeRef.current.dispose(false, true);
+      monNodeRef.current = null;
     }
 
     const curY = currentDeskHeightRef.current;
@@ -453,38 +500,62 @@ export const BabylonWorkspaceSimulator: React.FC = () => {
     monNodeRef.current = monNode;
   }, [monitorId]);
 
-  // 6. Rebuild Lighting
+  // 6. Rebuild Lighting (Version-tracked)
   useEffect(() => {
     const scene = sceneRef.current;
     const shadowGen = shadowGenRef.current;
     if (!scene || !shadowGen) return;
 
+    const currentVersion = ++lightVersionRef.current;
     if (lightingNodeRef.current) {
-      lightingNodeRef.current.dispose();
+      lightingNodeRef.current.dispose(false, true);
+      lightingNodeRef.current = null;
     }
 
     const curY = currentDeskHeightRef.current;
-    const lightNode = buildBabylonLighting(scene, lightingId, curY + 0.035, shadowGen);
-    lightingNodeRef.current = lightNode;
+    buildBabylonLighting(scene, lightingId, curY + 0.035, shadowGen).then((lightNode) => {
+      if (lightVersionRef.current === currentVersion) {
+        lightingNodeRef.current = lightNode;
+      } else {
+        lightNode.dispose(false, true);
+      }
+    });
+
+    return () => {
+      // Discard older loads
+    };
   }, [lightingId]);
 
-  // 7. Rebuild Accessories
+  // 7. Rebuild Accessories (Version-tracked to strictly prevent clipping)
   useEffect(() => {
     const scene = sceneRef.current;
     const shadowGen = shadowGenRef.current;
     if (!scene || !shadowGen) return;
 
+    const currentVersion = ++accVersionRef.current;
     if (deskAccNodeRef.current) {
-      deskAccNodeRef.current.dispose();
+      deskAccNodeRef.current.dispose(false, true);
+      deskAccNodeRef.current = null;
     }
     if (floorAccNodeRef.current) {
-      floorAccNodeRef.current.dispose();
+      floorAccNodeRef.current.dispose(false, true);
+      floorAccNodeRef.current = null;
     }
 
     const curY = currentDeskHeightRef.current;
-    const accResult = buildBabylonAccessories(scene, peripheralsId, plantId, lifestyleIds, curY + 0.035, shadowGen);
-    deskAccNodeRef.current = accResult.deskAccNode;
-    floorAccNodeRef.current = accResult.floorAccNode;
+    buildBabylonAccessories(scene, peripheralsId, plantId, lifestyleIds, curY + 0.035, shadowGen).then((accResult) => {
+      if (accVersionRef.current === currentVersion) {
+        deskAccNodeRef.current = accResult.deskAccNode;
+        floorAccNodeRef.current = accResult.floorAccNode;
+      } else {
+        accResult.deskAccNode.dispose(false, true);
+        accResult.floorAccNode.dispose(false, true);
+      }
+    });
+
+    return () => {
+      // Discard older loads
+    };
   }, [peripheralsId, plantId, lifestyleIds]);
 
   // Selected item data
